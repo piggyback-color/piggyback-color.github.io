@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Image Colorization with Latent/Stable Diffusion model.">
+  <meta name="keywords" content="Colorization, Latent Diffusion, Stable Diffusion">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Improved Diffusion-based Image Colorization via Piggybacked Models</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-32WKMF8H31"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-32WKMF8H31');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" type="image/png" href="./static/images/favicon.png">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Improved Diffusion-based Image Colorization <br/> via Piggybacked Models</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://hyliu.org/">Hanyuan Liu</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://doubiiu.github.io/">Jinbo Xing</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://msxie92.github.io/">Minshan Xie</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://moeka.me/">Chengze Li</a><sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.cse.cuhk.edu.hk/~ttwong/">Tien-Tsin Wong</a><sup>1</sup>,
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>The Chinese University of Hong Kong,</span>
+            <span class="author-block"><sup>2</sup>Caritas Institute of Higher Education</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-desktop"></i>
+                  </span>
+                  <span>Demo (coming soon)</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/hyliu/piggyback-color"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code (coming soon)</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- <section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay muted loop playsinline height="100%">
+        <source src="./static/videos/teaser.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+      </h2>
+    </div>
+  </div>
+</section> -->
+
+
+<section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <div id="results-carousel" class="carousel results-carousel is-vcentered">
+        <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01gt.jpg" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              Ground Truth
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01gray.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              Grayscale Input
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01uncond.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              ""
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01atnight.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "at night"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01aurora.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "aurora"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01rainy.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "rainy day"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/01sunset.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "sunset"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02gt.jpg" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              Ground Truth
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02gray.jpg" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              Grayscale Input
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02uncond.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              ""
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02cold.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "cold feeling"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02colorful.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "colorful"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02old.png" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "old photo"
+            </div>
+          </div>
+    </div>
+    <div class="card">
+          <div class="card-image">
+            <figure class="image">
+              <img src="./static/images/text_showcase/02warm.jpg" alt="">
+            </figure>
+          </div>
+          <div class="card-content">
+            <div class="item__title">
+              "warm feeling"
+            </div>
+          </div>
+    </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Image colorization has been attracting the research interests of the community for decades. However, existing methods still struggle to provide satisfactory colorized results given grayscale images due to a lack of human-like global understanding of colors. Recently, large-scale Text-to-Image (T2I) models have been exploited to transfer the semantic information from the text prompts to the image domain, where text provides a global control for semantic objects in the image. In this work, we introduce a colorization model piggybacking on the existing powerful T2I diffusion model. Our key idea is to exploit the color prior knowledge in the pre-trained T2I diffusion model for realistic and diverse colorization. A diffusion guider is designed to incorporate the pre-trained weights of the latent diffusion model to output a latent color prior that conforms to the visual semantics of the grayscale input. A lightness-aware VQVAE will then generate the colorized result with pixel-perfect alignment to the given grayscale image. Our model can also achieve conditional colorization with additional inputs (e.g. user hints and texts). Extensive experiments show that our method achieves state-of-the-art performance in terms of perceptual quality.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+    <!-- Paper video. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src=""
+                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div> -->
+    <!--/ Paper video. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Method</h2>
+        <div class="content has-text-justified">
+          <p>
+            <img src="./static/images/overview.png"></img>
+          </p>
+          <p>
+          Method overview. Our framework consists of two components: a latent diffusion guider model and a lightness-aware
+          VQVAE model. When the grayscale image \(I_g\) and the optional textual descriptions \(t\) or hint points \(\{h\}\), then the latent diffusion guider model guides the pretrained Stable Diffusion model to generate a "colorized" latent \(z_c\) through the denoising diffusion process. The lightness-aware
+          VQVAE model then uses \(z_c\) as the latent color prior and incorporates the grayscale information of \(I_g\) to produce a pixel-aligned colorization \(I_c\).
+          </p>
+        </div>
+
+        <!-- <h3 class="title is-4">Section</h3>
+        <div class="content has-text-justified">
+          <p>
+            Text
+          </p>
+        </div>
+        <div class="content has-text-centered">
+
+        </div> -->
+
+      </div>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Results</h2>
+
+
+        <h3 class="title is-4">Unconditional image colorization</h3>
+        <div class="content has-text-justified">
+          <!-- <p>
+            Text
+          </p> -->
+          <img src="./static/images/result_uncond.png">
+        </div>
+        <h3 class="title is-4">Unconditional image colorization with old photos</h3>
+        <div class="content has-text-justified">
+          <img src="./static/images/result_oldphoto.png">
+        </div>
+        <!-- <h3 class="title is-4">User-guided colorization</h3>
+        <div class="columns is-vcentered">
+          <div class="column has-text-centered">
+          <img src="./static/images/result_hint.png">
+          </div>
+          <div class="column has-text-centered">
+          <img src="./static/images/result_text.png">
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+
+    <!-- Concurrent Work. -->
+    <!-- <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Related Links</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            There's a lot of excellent work that was introduced around the same time as ours.
+          </p>
+        </div>
+      </div>
+    </div> -->
+    <!--/ Concurrent Work. -->
+
+  </div>
+</section>
+
+
+<!-- <section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>
+
+    </code></pre>
+  </div>
+</section> -->
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/hyliu/piggyback-color" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>. The source code is based on <a
+            href="https://github.com/nerfies/nerfies.github.io">nerfies</a> project page. 
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
