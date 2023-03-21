@@ -34,8 +34,8 @@ $(document).ready(function() {
 			slidesToShow: 7,
 			loop: true,
 			infinite: true,
-			autoplay: false,
-			autoplaySpeed: 3000,
+			autoplay: true,
+			autoplaySpeed: 6000,
       pagination: false,
     }
 

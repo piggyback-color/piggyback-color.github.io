@@ -159,3 +159,9 @@ body {
 .center_image {
   margin:auto;
 }
+
+.card-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
